@@ -1,0 +1,61 @@
+name: Build APK
+
+# Roda a cada push e também manualmente (aba Actions → Build APK → Run workflow).
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: write # necessário para publicar o APK em "Releases"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Testes da lógica (motor de registros, descoberta, estatísticas)
+        run: npm test
+
+      - name: Build web (typecheck + vite)
+        run: npm run build
+
+      - name: Sincronizar projeto Android
+        run: npx cap sync android
+
+      - name: Compilar APK assinado
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon --stacktrace \
+            -PversionCode=${{ github.run_number }} \
+            -PversionName=1.0.${{ github.run_number }}
+
+      - name: Nomear o APK
+        run: cp android/app/build/outputs/apk/release/app-release.apk RoutineTracker.apk
+
+      - name: Publicar em Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: RoutineTracker build ${{ github.run_number }}
+          body: Baixe **RoutineTracker.apk** abaixo e instale no celular.
+          files: RoutineTracker.apk
+          make_latest: true
