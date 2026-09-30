@@ -1,0 +1,43 @@
+@import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
+@import "@fontsource/plus-jakarta-sans/400.css";
+@import "@fontsource/plus-jakarta-sans/600.css";
+@import "@fontsource/plus-jakarta-sans/700.css";
+@import "@fontsource/space-mono/400.css";
+@import "@fontsource/space-mono/700.css";
+
+@theme {
+  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'Space Mono', ui-monospace, monospace;
+}
+
+@layer base {
+  html, body, #root { height: 100%; }
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    background-color: #FAF7F2;
+    color: #292524;
+    overscroll-behavior: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  input, textarea, select { -webkit-user-select: text; user-select: text; font-size: 16px; }
+  button { cursor: pointer; }
+  ::-webkit-scrollbar { display: none; }
+}
+
+/* Cartões "livro-caixa": sombra deslocada + borda quente */
+.retro-shadow    { box-shadow: 2px 2px 0 #E5DCD0; border: 1px solid #E8DFD1; }
+.retro-shadow-sm { box-shadow: 1px 1px 0 #E5DCD0; border: 1px solid #E8DFD1; }
+.retro-shadow-lg { box-shadow: 4px 4px 0 #D8CDBC; border: 1px solid #E8DFD1; }
+.retro-press { transition: transform 100ms ease, box-shadow 100ms ease; }
+.retro-press:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 #E5DCD0; }
+
+/* Áreas do sistema (status bar / barra de gestos). Em WebViews antigas o Capacitor já aplica padding nativo e env() vale 0. */
+.pt-safe { padding-top: env(safe-area-inset-top, 0px); }
+.pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
+
+/* Leaflet dentro do cartão */
+.leaflet-container { font-family: var(--font-sans); background: #EFE9DE; }
