@@ -1,0 +1,78 @@
+apply plugin: 'com.android.application'
+
+android {
+    namespace = "app.routinetracker"
+    compileSdk = rootProject.ext.compileSdkVersion
+    defaultConfig {
+        applicationId "app.routinetracker"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        // O CI passa -PversionCode=<nº do build>; cada APK novo precisa de versionCode maior para atualizar por cima.
+        versionCode = (project.findProperty('versionCode') ?: '1').toString().toInteger()
+        versionName = (project.findProperty('versionName') ?: '1.0').toString()
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        aaptOptions {
+             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
+             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
+            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+        }
+    }
+    // Keystore FIXA versionada no repositório (repo privado, uso pessoal): toda build é assinada com
+    // a mesma chave, então o Android aceita instalar uma versão nova por cima da anterior sem perder dados.
+    signingConfigs {
+        rt {
+            storeFile file('routinetracker.keystore')
+            storePassword 'routinetracker'
+            keyAlias 'routinetracker'
+            keyPassword 'routinetracker'
+        }
+    }
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.rt
+        }
+        release {
+            signingConfig signingConfigs.rt
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    // Build de release não deve falhar por avisos do lint (ex.: MissingPermission em código já protegido).
+    lint {
+        abortOnError false
+        checkReleaseBuilds false
+    }
+}
+
+repositories {
+    flatDir{
+        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+    implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
+    implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
+    implementation project(':capacitor-android')
+    // Geofences (entrada/saída monitoradas pelo sistema) e localização de baixo consumo.
+    implementation 'com.google.android.gms:play-services-location:21.3.0'
+    // Amostragem periódica (15 min) e resumo diário em segundo plano.
+    implementation 'androidx.work:work-runtime:2.10.0'
+    testImplementation "junit:junit:$junitVersion"
+    androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
+    implementation project(':capacitor-cordova-android-plugins')
+}
+
+apply from: 'capacitor.build.gradle'
+
+try {
+    def servicesJSON = file('google-services.json')
+    if (servicesJSON.text) {
+        apply plugin: 'com.google.gms.google-services'
+    }
+} catch(Exception e) {
+    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+}
