@@ -2,6 +2,8 @@
   "name": "routinetracker",
   "private": true,
   "version": "1.0.0",
+  "description": "App Android que registra automaticamente a chegada e a saída dos seus lugares com geofences, com extrato, gráficos e metas.",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "dev": "vite --host",

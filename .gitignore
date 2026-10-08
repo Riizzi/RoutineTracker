@@ -1,0 +1,26 @@
+# Dependências e builds
+node_modules/
+dist/
+coverage/
+*.log
+.DS_Store
+.env*
+
+# Android (gerado pelo Gradle / Capacitor)
+android/.gradle/
+android/.idea/
+android/local.properties
+android/build/
+android/app/build/
+android/app/release/
+android/capacitor-cordova-android-plugins/build/
+android/app/src/main/assets/public/
+android/app/src/main/assets/capacitor.config.json
+android/app/src/main/assets/capacitor.plugins.json
+android/app/src/main/res/xml/config.xml
+*.apk
+*.aab
+*.iml
+
+# A keystore em android/app/routinetracker.keystore é versionada de propósito
+# (mesma assinatura em todas as builds, para atualizar sem desinstalar).

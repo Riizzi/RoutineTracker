@@ -1,55 +1,87 @@
+<div align="center">
+
+<img src="android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png" width="88" alt="RoutineTracker icon" />
+
 # RoutineTracker
 
-App Android que registra sozinho, em segundo plano, quando você chega e sai dos seus lugares
-(casa, trabalho, academia…), com extrato, gráficos, metas e sugestão de cadastrar lugares novos.
-Tudo fica só no seu celular.
+**English** · [Português](README.pt-BR.md)
 
-## Como funciona (resumo técnico)
+An Android app that logs, on its own and in the background, when you arrive at and leave your places (home, work, gym…), with a daily log, charts, goals and suggestions to add new places. Everything stays on your phone.
 
-- **Geofences nativas** (Google Play Services): quem monitora é o Android, não o app → consumo de bateria quase nulo e funciona com o app fechado.
-- Uma leitura de localização de baixo consumo a cada ~15 min corrige saídas perdidas e detecta permanências em lugares não cadastrados.
-- O Android acumula os eventos; o app os processa ao abrir (`src/core/engine.ts`, testado em `src/core/*.test.ts`).
-- Mapa/busca: OpenStreetMap (sem chave de API).
+![Android](https://img.shields.io/badge/Android-292524?logo=android&logoColor=3DDC84)
+![Capacitor](https://img.shields.io/badge/Capacitor_8-292524?logo=capacitor&logoColor=119EFF)
+![React](https://img.shields.io/badge/React_19-292524?logo=react&logoColor=61DAFB)
+![TypeScript](https://img.shields.io/badge/TypeScript-292524?logo=typescript&logoColor=3178C6)
+![Java](https://img.shields.io/badge/Java-292524?logo=openjdk&logoColor=white)
+![OpenStreetMap](https://img.shields.io/badge/OpenStreetMap-292524?logo=openstreetmap&logoColor=7EBC6F)
 
-## Instalar no celular (uma vez, ~10 min)
+</div>
 
-1. **Crie um repositório PRIVADO** vazio em <https://github.com/new> (ex.: `routinetracker`).
-2. No computador, dentro desta pasta:
-   ```bash
-   git init -b main
-   git add .
-   git commit -m "RoutineTracker"
-   git remote add origin https://github.com/SEU_USUARIO/routinetracker.git
-   git push -u origin main
-   ```
-3. Abra a aba **Actions** do repositório: o job “Build APK” começa sozinho (~6–10 min na primeira vez).
-4. Quando terminar, abra no **celular**: `https://github.com/SEU_USUARIO/routinetracker/releases/latest`
-   (entre na sua conta do GitHub), baixe **RoutineTracker.apk** e instale.
-   Se o Android pedir, permita “instalar apps desconhecidos” para o navegador.
-5. Abra o app e siga a tela inicial: **Localização → “Permitir o tempo todo”**, notificações e bateria “Sem restrições”.
+> The app interface is in Brazilian Portuguese.
 
-## Atualizar
+## Features
 
-Altere o código, `git push`. Um novo APK é publicado em Releases e instala **por cima** do anterior sem perder dados
-(o app é sempre assinado com a mesma chave, `android/app/routinetracker.keystore`).
+- **Automatic logging** of arrivals and departures at your saved places, even with the app closed
+- **Now**: where you are and for how long
+- **Daily log** with a timeline bar of time spent at each place
+- **Charts** and weekly **goals** (e.g. work hours, gym visits)
+- **Place discovery**: detects long stays at unsaved places and suggests adding them
+- **Map-based place setup** with address search (OpenStreetMap, no API key)
+- **Daily summary** notification
+- **JSON backup** and **CSV export** through the Android share sheet
+- **Privacy**: no server; data never leaves the device
 
-## Se o build falhar
+## How it works
 
-Abra Actions → execução com ✗ → copie o log do passo que falhou e me envie.
+- **Native geofences** (Google Play Services): Android does the monitoring, not the app, so battery use is close to zero and it works with the app closed.
+- A low-power location reading every ~15 min (WorkManager) catches missed exits and detects stays at unsaved places.
+- Android queues the events and the app processes them when opened (`src/core/engine.ts`).
+- The logging, discovery and statistics logic is pure and covered by tests (`src/core/*.test.ts`).
 
-## Desenvolvimento
+```
+Android (Java)                                   App (React + Capacitor)
+ ├── GeofenceReceiver ── enter/exit ─────┐
+ ├── SamplerWorker ───── reading ~15 min ─┼──► NativeStore ──► bridge.ts ──► core/engine.ts ──► screens
+ ├── SummaryWorker ───── daily summary    │                                  core/discovery.ts
+ └── BootReceiver ────── restores geofences after reboot                     core/stats.ts
+```
+
+## Tech stack
+
+| Layer | Technology |
+| --- | --- |
+| UI | React 19, TypeScript, Tailwind CSS 4, Leaflet |
+| Native | Capacitor 8 + a custom Java plugin (geofences, WorkManager, notifications) |
+| Maps | OpenStreetMap / Nominatim |
+| Tests | `node:test` via `tsx` |
+| CI | GitHub Actions: tests, build and a signed APK published to Releases |
+
+## Installing on a phone
+
+1. Open the **Actions** tab: the **Build APK** workflow runs on every push (or manually via *Run workflow*).
+2. On the phone, open the repository's **Releases** page, download **RoutineTracker.apk** and install it. If Android asks, allow "install unknown apps" for the browser.
+3. Open the app and follow the setup screen: **Location → "Allow all the time"**, notifications, and battery "Unrestricted".
+
+To update, just `git push`: the new APK installs over the previous one without losing data, because every build is signed with the same key (`android/app/routinetracker.keystore`).
+
+## Development
 
 ```bash
 npm install
-npm test          # lógica pura (motor, descoberta, estatísticas)
-npm run dev       # interface no navegador (dados de demonstração em Config)
+npm test          # pure logic (engine, discovery, statistics)
+npm run dev       # UI in the browser (demo data under Config)
 npm run build && npx cap sync android
 ```
 
-## Limitações conhecidas
+## Known limitations
 
-- Fabricantes como Xiaomi, Samsung e Motorola podem encerrar apps em segundo plano: use bateria “Sem restrições”.
-- O Android pode levar alguns minutos para avisar uma entrada/saída de geofence.
-- Resumo diário, aviso de lugar novo e status são notificações “melhor esforço”.
-- A notificação de lugar novo cobre uma única permanência longa; visitas curtas repetidas aparecem na aba Lugares.
-- A keystore fica no repositório (uso pessoal, repo privado). Não publique este repositório.
+- Manufacturers such as Xiaomi, Samsung and Motorola may kill background apps: set battery to "Unrestricted".
+- Android may take a few minutes to report a geofence enter or exit.
+- Daily summary, new-place alert and status are best-effort notifications.
+- The new-place alert covers a single long stay; repeated short visits show up in the Places tab.
+
+> **Note:** the signing keystore is in the repository and its password is in `android/app/build.gradle` (personal use). **Keep this repository private.** Before making it public, move the keystore and password into GitHub Actions secrets.
+
+## License
+
+[MIT](LICENSE)
