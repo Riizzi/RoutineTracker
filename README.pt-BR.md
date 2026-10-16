@@ -60,7 +60,7 @@ Android (Java)                                   App (React + Capacitor)
 2. No celular, abra a página **Releases** do repositório, baixe **RoutineTracker.apk** e instale. Se o Android pedir, permita "instalar apps desconhecidos" para o navegador.
 3. Abra o app e siga a tela inicial: **Localização → "Permitir o tempo todo"**, notificações e bateria "Sem restrições".
 
-Para atualizar, basta dar `git push`: o novo APK instala por cima do anterior sem perder dados, porque todas as builds usam a mesma chave (`android/app/routinetracker.keystore`).
+Para atualizar, basta dar `git push`: o novo APK instala por cima do anterior sem perder dados, porque todas as builds usam a mesma chave (guardada nos Secrets do GitHub).
 
 ## Desenvolvimento
 
@@ -78,7 +78,7 @@ npm run build && npx cap sync android
 - Resumo diário, aviso de lugar novo e status são notificações de "melhor esforço".
 - A notificação de lugar novo cobre uma única permanência longa; visitas curtas repetidas aparecem na aba Lugares.
 
-> **Atenção:** a keystore de assinatura está no repositório e a senha está em `android/app/build.gradle` (uso pessoal). **Mantenha este repositório privado.** Para publicá-lo, mova a keystore e a senha para os *secrets* do GitHub Actions antes.
+> **Assinatura do APK:** a chave fica só nos *Secrets* do GitHub (`ANDROID_KEYSTORE_BASE64` e `ANDROID_KEYSTORE_PASSWORD`), nunca no repositório. Sem eles, o workflow compila com uma chave temporária e não publica em Releases.
 
 ## Licença
 

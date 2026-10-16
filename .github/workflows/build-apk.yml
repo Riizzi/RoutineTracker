@@ -4,6 +4,7 @@ name: Build APK
 on:
   push:
     branches: [main, master]
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -38,6 +39,34 @@ jobs:
       - name: Sincronizar projeto Android
         run: npx cap sync android
 
+      # Assinatura: a chave fica só nos Secrets do GitHub (ANDROID_KEYSTORE_BASE64 e
+      # ANDROID_KEYSTORE_PASSWORD), nunca no repositório. Sem eles, o APK sai com uma chave
+      # temporária, serve só para conferir o build e não é publicado.
+      - name: Preparar assinatura
+        env:
+          KS_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          if [ -n "$KS_B64" ] && [ -n "$KS_PASS" ]; then
+            echo "$KS_B64" | base64 -d > "$RUNNER_TEMP/app.keystore"
+            {
+              echo "ANDROID_KEYSTORE_FILE=$RUNNER_TEMP/app.keystore"
+              echo "ANDROID_KEYSTORE_PASSWORD=$KS_PASS"
+              echo "ANDROID_KEY_ALIAS=riizzi"
+              echo "ASSINATURA=oficial"
+            } >> "$GITHUB_ENV"
+          else
+            keytool -genkeypair -keystore "$RUNNER_TEMP/temp.keystore" -storetype PKCS12 -alias temp \
+              -keyalg RSA -keysize 2048 -validity 2 -storepass temporaria -keypass temporaria -dname "CN=Build de teste"
+            {
+              echo "ANDROID_KEYSTORE_FILE=$RUNNER_TEMP/temp.keystore"
+              echo "ANDROID_KEYSTORE_PASSWORD=temporaria"
+              echo "ANDROID_KEY_ALIAS=temp"
+              echo "ASSINATURA=temporaria"
+            } >> "$GITHUB_ENV"
+            echo "::warning::Sem os segredos ANDROID_KEYSTORE_BASE64 e ANDROID_KEYSTORE_PASSWORD: APK assinado com chave temporária e não publicado em Releases."
+          fi
+
       - name: Compilar APK assinado
         working-directory: android
         run: |
@@ -50,6 +79,7 @@ jobs:
         run: cp android/app/build/outputs/apk/release/app-release.apk RoutineTracker.apk
 
       - name: Publicar em Releases
+        if: github.event_name != 'pull_request' && env.ASSINATURA == 'oficial'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: build-${{ github.run_number }}

@@ -3,6 +3,8 @@ import { CalendarDays, ChartColumn, MapPin, Navigation, SlidersHorizontal, Trian
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Lugar, Sugestao } from './core/types.ts';
 import { native, type NativeStatus } from './native/bridge.ts';
+import { cl4pCapturarDeepLink } from './services/cl4pLink.ts';
+import { usePublicarNoCl4p } from './services/cl4pRotina.ts';
 import { iniciarNativo, marcarOnboarding, sincronizar, useEstado } from './store/store.ts';
 import Agora from './ui/screens/Agora.tsx';
 import Config from './ui/screens/Config.tsx';
@@ -24,6 +26,7 @@ const ABAS: { id: Aba; rotulo: string; Icone: typeof Navigation }[] = [
 
 export default function App() {
   const { onboardingVisto } = useEstado();
+  usePublicarNoCl4p();
   const [aba, setAba] = useState<Aba>('agora');
   const [form, setForm] = useState<FormInicial | null>(null);
   const [status, setStatus] = useState<NativeStatus | null>(null);
@@ -66,6 +69,11 @@ export default function App() {
     const abrir = (url: string) => {
       try {
         const u = new URL(url);
+        if (u.protocol === 'routinetracker:' && u.hostname === 'cl4p') {
+          // Vínculo vindo do hub CL4P-RZ: routinetracker://cl4p?code=...
+          if (cl4pCapturarDeepLink(url)) setAba('config');
+          return;
+        }
         if (u.protocol !== 'routinetracker:' || u.hostname !== 'novo-lugar') return;
         const lat = Number(u.searchParams.get('lat'));
         const lng = Number(u.searchParams.get('lng'));
