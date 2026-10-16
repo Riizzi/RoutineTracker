@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Lugar, Sugestao } from './core/types.ts';
 import { native, type NativeStatus } from './native/bridge.ts';
 import { cl4pCapturarDeepLink } from './services/cl4pLink.ts';
+import { baixarAtualizacao, verificarSeFazUmDia, type InfoAtualizacao } from './services/atualizacao.ts';
 import { usePublicarNoCl4p } from './services/cl4pRotina.ts';
 import { iniciarNativo, marcarOnboarding, sincronizar, useEstado } from './store/store.ts';
 import Agora from './ui/screens/Agora.tsx';
@@ -103,6 +104,11 @@ export default function App() {
   const cadastrar = (s?: Sugestao) => setForm(s ? { latitude: s.latitude, longitude: s.longitude } : {});
   const editar = (l: Lugar) => setForm({ editar: l });
 
+  const [nova, setNova] = useState<InfoAtualizacao | null>(null);
+  useEffect(() => {
+    verificarSeFazUmDia('Riizzi/RoutineTracker', 'RoutineTracker.apk').then((i) => i?.temNova && setNova(i)).catch(() => {});
+  }, []);
+
   const faltaPermissao = native.isNative && status && (!status.fine || !status.background);
 
   if (native.isNative && status && !onboardingVisto && faltaPermissao) {
@@ -125,6 +131,11 @@ export default function App() {
             <span className="text-sm text-[#57534E]">
               <strong className="text-[#BC5A42]">Registro automático desligado.</strong> Falta permissão de localização “o tempo todo”. Toque para resolver.
             </span>
+          </button>
+        )}
+        {nova && (
+          <button onClick={() => baixarAtualizacao(nova)} className="w-full text-left bg-[#FFFDF9] border border-[#E8DFD1] rounded-xl p-3 mb-4 text-sm text-[#57534E]">
+            <strong className="text-[#292524]">Versão nova disponível</strong> (build {nova.ultima}). Toque para baixar.
           </button>
         )}
         {aba === 'agora' && <Agora onCadastrar={cadastrar} />}
