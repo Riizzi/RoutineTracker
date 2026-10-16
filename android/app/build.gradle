@@ -17,22 +17,21 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
-    // Keystore FIXA versionada no repositório (repo privado, uso pessoal): toda build é assinada com
-    // a mesma chave, então o Android aceita instalar uma versão nova por cima da anterior sem perder dados.
+    // Assinatura vinda do CI (GitHub Secrets → variáveis de ambiente). Build local sem elas usa a chave de debug.
+    def ksArquivo = System.getenv('ANDROID_KEYSTORE_FILE')
     signingConfigs {
-        rt {
-            storeFile file('routinetracker.keystore')
-            storePassword 'routinetracker'
-            keyAlias 'routinetracker'
-            keyPassword 'routinetracker'
+        if (ksArquivo) {
+            oficial {
+                storeFile file(ksArquivo)
+                storePassword System.getenv('ANDROID_KEYSTORE_PASSWORD')
+                keyAlias System.getenv('ANDROID_KEY_ALIAS') ?: 'riizzi'
+                keyPassword System.getenv('ANDROID_KEYSTORE_PASSWORD')
+            }
         }
     }
     buildTypes {
-        debug {
-            signingConfig signingConfigs.rt
-        }
         release {
-            signingConfig signingConfigs.rt
+            if (ksArquivo) signingConfig signingConfigs.oficial
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
