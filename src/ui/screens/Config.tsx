@@ -6,6 +6,7 @@ import { carregarDemo } from '../../store/demo.ts';
 import { Botao, Cartao, Chave, Rotulo } from '../kit.tsx';
 import { ListaPermissoes } from './Permissoes.tsx';
 import Cl4pLinkCard from '../Cl4pLinkCard.tsx';
+import AtualizacaoCard from '../AtualizacaoCard.tsx';
 
 const Linha = ({ rotulo, detalhe, children }: { rotulo: string; detalhe?: string; children: React.ReactNode }) => (
   <div className="flex items-center justify-between gap-3 min-h-11">
@@ -62,6 +63,7 @@ export default function Config({ status, atualizarStatus }: { status: NativeStat
       </Cartao>
 
       <Cl4pLinkCard />
+      {native.isNative && <AtualizacaoCard repo="Riizzi/RoutineTracker" apk="RoutineTracker.apk" />}
 
       <Cartao className="space-y-1">
         <Rotulo className="mb-2">Rastreamento</Rotulo>
