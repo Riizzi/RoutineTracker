@@ -4,6 +4,7 @@ name: Build APK
 on:
   push:
     branches: [main, master]
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -50,6 +51,7 @@ jobs:
         run: cp android/app/build/outputs/apk/release/app-release.apk RoutineTracker.apk
 
       - name: Publicar em Releases
+        if: github.event_name != 'pull_request'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: build-${{ github.run_number }}

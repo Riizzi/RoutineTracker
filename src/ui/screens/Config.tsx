@@ -5,6 +5,7 @@ import { apagarTudo, atualizarConfig, gerarBackupJSON, gerarCSV, getEstado, impo
 import { carregarDemo } from '../../store/demo.ts';
 import { Botao, Cartao, Chave, Rotulo } from '../kit.tsx';
 import { ListaPermissoes } from './Permissoes.tsx';
+import Cl4pLinkCard from '../Cl4pLinkCard.tsx';
 
 const Linha = ({ rotulo, detalhe, children }: { rotulo: string; detalhe?: string; children: React.ReactNode }) => (
   <div className="flex items-center justify-between gap-3 min-h-11">
@@ -59,6 +60,8 @@ export default function Config({ status, atualizarStatus }: { status: NativeStat
         <Rotulo>Permissões {tudoOk ? '· tudo certo' : '· atenção'}</Rotulo>
         {tudoOk ? <p className="text-sm text-[#4E7060]">Tudo configurado para o registro automático.</p> : <ListaPermissoes status={status} atualizar={atualizarStatus} />}
       </Cartao>
+
+      <Cl4pLinkCard />
 
       <Cartao className="space-y-1">
         <Rotulo className="mb-2">Rastreamento</Rotulo>

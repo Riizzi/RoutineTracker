@@ -30,6 +30,14 @@
                 <data android:scheme="routinetracker" android:host="novo-lugar" />
             </intent-filter>
 
+            <!-- Vínculo vindo do hub CL4P-RZ: routinetracker://cl4p?code=... -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="routinetracker" android:host="cl4p" />
+            </intent-filter>
+
         </activity>
 
         <!-- Recebe as transições de geofence (entrada/saída) enviadas pelo Google Play Services. -->
